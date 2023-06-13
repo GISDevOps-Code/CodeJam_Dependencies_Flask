@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Service Dependencies</title>
+
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href=https://unpkg.com/leaflet@1.7.1/dist/leaflet.css
+integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+crossorigin=""/>
+<script src=https://unpkg.com/leaflet@1.7.1/dist/leaflet.js
+integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+crossorigin=""></script>
+<script src=https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js></script>
+
+
+
+<style>
+body{
+    font-family: arial, sans-serif;
+
+}
+
+.html, body, #map {
+    height:500px;
+    width:100%;
+}
+table {
+    width:50%
+}
+td, th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+tr:nth-child(even){background-color: #f2f2f2;}
+
+tr:hover {background-color: #ddd;}
+
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: center;
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<h1>Service Dependencies</h1>
+  <p>
+      <form action="{{url_for('views.trigger_script')}}" method="post">
+
+      <label for="PortalURL">Portal/AGOL URL:</label><br>
+      <input size=100 type="text" id="PortalURL" name="PortalURL"><br>
+
+    <label for="Username">Username:</label><br>
+      <input size=25 type="text" id="Username" name="Username"><br>
+
+    <label for="Password">Password:</label><br>
+      <input size=25 type="password" id="Password" name="Password"><br>
+
+
+      <input type="submit" value="Submit">
+  </form>
+  </p>
+
+
+
+<form action="{{url_for('views.filter')}}"  method="post">
+    <input type="hidden" name="service_dict" value="{{service_dict}}" />
+  <label for="service">Choose a service:</label>
+  <select name="service" id="service">
+      {% for s in services %}
+        <option value="{{s}}">{{s}}</option>
+      {% endfor %}
+  </select>
+    <br>
+  <input type="submit" value="Submit">
+</form>
+
+<br>
+Displaying results for: {{selected_service}}
+<br>
+
+<table border="1" class ="results">
+    <tr>
+        <th>Map Name</th>
+        <th>Owner</th>
+        <th>Sharing</th>
+    </tr>
+{% for item in data %}
+    <tr>
+        <td><a href="{{item.Link}}">{{item.Name}}</a></td>
+        <td>{{item.Owner}}</td>
+        <td>{{item.Sharing}}</td>
+    </tr>
+{% endfor %}
+</table>
+<br><br><br>
+
+<div id="map"></div>
+<script src="{{ url_for('static', filename='js/universal.js') }}" /></script>
+<script>
+map.setView([36, -82], 10);
+
+      const lyr = L.esri
+        .featureLayer({
+          url: "{{selected_service}}?token={{token}}"
+        })
+        .addTo(map);
+
+       lyr.query().bounds(function (error, latlngbounds) {
+        if (error) {
+          console.log('Error running "Query" operation: ' + error);
+        }
+
+        map.fitBounds(latlngbounds);
+        });
+</script>
+
+
+
+</body>
+</html>
